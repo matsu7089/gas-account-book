@@ -95,23 +95,27 @@
         <!-- 操作列 -->
         <template v-slot:item.actions="{ item }">
           <v-icon class="mr-2" @click="onClickEdit(item)">mdi-pencil</v-icon>
-          <v-icon>mdi-delete</v-icon>
+          <v-icon @click="onClickDelete(item)">mdi-delete</v-icon>
         </template>
       </v-data-table>
     </v-card>
     <!-- 追加／編集ダイアログ -->
     <ItemDialog ref="itemDialog"/>
+    <!-- 削除ダイアログ -->
+    <DeleteDialog ref="deleteDialog"/>
   </div>
 </template>
 
 <script>
 import ItemDialog from '../components/ItemDialog.vue'
+import DeleteDialog from '../components/DeleteDialog.vue'
 
 export default {
   name: 'Home',
 
   components: {
-    ItemDialog
+    ItemDialog,
+    DeleteDialog
   },
 
   data () {
@@ -173,6 +177,10 @@ export default {
     /** 編集ボタンがクリックされたとき */
     onClickEdit (item) {
       this.$refs.itemDialog.open('edit', item)
+    },
+    /** 削除ボタンがクリックされたとき */
+    onClickDelete (item) {
+      this.$refs.deleteDialog.open(item)
     }
   }
 }
