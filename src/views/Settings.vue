@@ -49,7 +49,7 @@
       />
       <v-row class="mt-4">
         <v-spacer/>
-        <v-btn color="primary" :disabled="!valid" @click="save">保存</v-btn>
+        <v-btn color="primary" :disabled="!valid" @click="onClickSave">保存</v-btn>
       </v-row>
     </v-form>
   </div>
@@ -67,14 +67,7 @@ export default {
       /** 入力したデータが有効かどうか */
       valid: false,
       /** 設定 */
-      settings: {
-        appName: 'GAS 家計簿',
-        apiUrl: '',
-        authToken: '',
-        strIncomeItems: '給料, ボーナス, 繰越',
-        strOutgoItems: '食費, 趣味, 交通費, 買い物, 交際費, 生活費, 住宅, 通信, 車, 税金',
-        strTagItems: '固定費, カード'
-      },
+      settings: { ...this.$store.state.settings },
 
       /** バリデーションルール */
       appNameRule: v => v.length <= 30 || '30文字以内で入力してください',
@@ -84,6 +77,13 @@ export default {
         v => itemMaxLength(v) <= 4 || '各カテゴリは4文字以内で入力してください'
       ],
       tagRule: v => itemMaxLength(v) <= 4 || '各タグは4文字以内で入力してください'
+    }
+  },
+
+  methods: {
+    /** 保存ボタンがクリックされたとき */
+    onClickSave () {
+      this.$store.dispatch('saveSettings', { settings: this.settings })
     }
   }
 }
