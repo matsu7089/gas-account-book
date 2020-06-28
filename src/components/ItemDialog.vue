@@ -121,6 +121,8 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
+
 export default {
   name: 'ItemDialog',
 
@@ -154,13 +156,8 @@ export default {
       /** メモ */
       memo: '',
 
-      /** 収支カテゴリ一覧 */
-      incomeItems: ['カテ1', 'カテ2'],
-      outgoItems: ['カテ3', 'カテ4'],
       /** 選択可能カテゴリ一覧 */
       categoryItems: [],
-      /** タグリスト */
-      tagItems: ['タグ1', 'タグ2'],
       /** 編集前の年月（編集時に使う） */
       beforeYM: '',
 
@@ -179,6 +176,14 @@ export default {
   },
 
   computed: {
+    ...mapGetters([
+      /** 収支カテゴリ */
+      'incomeItems',
+      'outgoItems',
+      /** タグ */
+      'tagItems'
+    ]),
+
     /** ダイアログのタイトル */
     titleText () {
       return this.actionType === 'add' ? 'データ追加' : 'データ編集'
@@ -190,6 +195,13 @@ export default {
   },
 
   methods: {
+    ...mapActions([
+      /** データ追加 */
+      'addAbData',
+      /** データ更新 */
+      'updateAbData'
+    ]),
+
     /**
      * ダイアログを表示します。
      * このメソッドは親から呼び出されます。
@@ -209,7 +221,26 @@ export default {
     },
     /** 追加／更新がクリックされたとき */
     onClickAction () {
-      // あとで実装
+      const item = {
+        date: this.date,
+        title: this.title,
+        category: this.category,
+        tags: this.tags.join(','),
+        memo: this.memo,
+        income: null,
+        outgo: null
+      }
+      item[this.inout] = this.amount || 0
+
+      if (this.actionType === 'add') {
+        item.id = Math.random().toString(36).slice(-8) // ランダムな8文字のIDを生成
+        this.addAbData({ item })
+      } else {
+        item.id = this.id
+        this.updateAbData({ beforeYM: this.beforeYM, item })
+      }
+
+      this.show = false
     },
     /** 収支が切り替わったとき */
     onChangeInout () {
