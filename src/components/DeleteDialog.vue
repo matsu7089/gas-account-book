@@ -20,6 +20,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'DeleteDialog',
 
@@ -35,6 +37,11 @@ export default {
   },
 
   methods: {
+    ...mapActions([
+      /** データ削除 */
+      'deleteAbData'
+    ]),
+
     /**
      * ダイアログを表示します。
      * このメソッドは親から呼び出されます。
@@ -49,7 +56,8 @@ export default {
     },
     /** 削除がクリックされたとき */
     onClickDelete () {
-      // あとで実装
+      this.deleteAbData({ item: this.item })
+      this.show = false
     }
   }
 }
