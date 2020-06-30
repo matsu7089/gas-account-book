@@ -1,7 +1,7 @@
 const ss = SpreadsheetApp.getActive()
 
 function test () {
-  const result = onGet({ yearMonth: '2020-07' })
+  const result = onDelete({ yearMonth: '2020-07', id: 'xxxxxxxx' })
   console.log(result)
 }
 
@@ -68,6 +68,38 @@ function onPost ({ item }) {
   sheet.appendRow(row)
 
   return { id, date, title, category, tags, income, outgo, memo }
+}
+
+/**
+ * 指定年月&idのデータを削除します
+ * @param {Object} params
+ * @param {String} params.yearMonth 年月
+ * @param {String} params.id id
+ * @returns {Object} メッセージ
+ */
+function onDelete ({ yearMonth, id }) {
+  const ymReg = /^[0-9]{4}-(0[1-9]|1[0-2])$/
+  const sheet = ss.getSheetByName(yearMonth)
+
+  if (!ymReg.test(yearMonth) || sheet === null) {
+    return {
+      error: '指定のシートは存在しません'
+    }
+  }
+
+  const lastRow = sheet.getLastRow()
+  const index = sheet.getRange('A7:A' + lastRow).getValues().flat().findIndex(v => v === id)
+
+  if (index === -1) {
+    return {
+      error: '指定のデータは存在しません'
+    }
+  }
+
+  sheet.deleteRow(index + 7)
+  return {
+    message: '削除完了しました'
+  }
 }
 
 /** --- common --- */
