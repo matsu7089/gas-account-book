@@ -1,8 +1,46 @@
 const ss = SpreadsheetApp.getActive()
 
 function test () {
-  insertSheet('2020-06')
+  onPost({
+    item: {
+      date: '2020-07-01',
+      title: '支出サンプル',
+      category: '食費',
+      tags: 'タグ1,タグ2',
+      income: null,
+      outgo: 3000,
+      memo: 'メモメモ'  
+    }
+  })
 }
+
+/** --- API --- */
+
+/**
+ * データを追加します
+ * @param {Object} params
+ * @param {Object} params.item 家計簿データ
+ * @returns {Object} 追加した家計簿データ
+ */
+function onPost ({ item }) {
+  if (!isValid(item)) {
+    return {
+      error: '正しい形式で入力してください'
+    }
+  }
+  const { date, title, category, tags, income, outgo, memo } = item
+  
+  const yearMonth = date.slice(0, 7)
+  const sheet = ss.getSheetByName(yearMonth) || insertTemplate(yearMonth)
+
+  const id = Utilities.getUuid().slice(0, 8)
+  const row = ["'" + id, "'" + date, "'" + title, "'" + category, "'" + tags, income, outgo, "'" + memo]
+  sheet.appendRow(row)
+
+  return { id, date, title, category, tags, income, outgo, memo }
+}
+
+/** --- common --- */
 
 /**
  * 指定年月のテンプレートシートを作成します
@@ -64,4 +102,38 @@ function insertTemplate (yearMonth) {
   sheet.setColumnWidth(9, 21)
 
   return sheet
+}
+
+/**
+ * データが正しい形式か検証します
+ * @param {Object} item
+ * @returns {Boolean} isValid
+ */
+function isValid (item = {}) {
+  const strKeys = ['date', 'title', 'category', 'tags', 'memo']
+  const keys = [...strKeys, 'income', 'outgo']
+
+  // すべてのキーが存在するか
+  for (const key of keys) {
+    if (item[key] === undefined) return false
+  }
+
+  // 収支以外が文字列であるか
+  for (const key of strKeys) {
+    if (typeof item[key] !== 'string') return false
+  }
+
+  // 日付が正しい形式であるか
+  const dateReg = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+  if (!dateReg.test(item.date)) return false
+
+  // 収支のどちらかが入力されているか
+  const { income: i, outgo: o } = item
+  if ((i === null && o === null) || (i !== null && o !== null)) return false
+
+  // 入力された収支が数字であるか
+  if (i !== null && typeof i !== 'number') return false
+  if (o !== null && typeof o !== 'number') return false
+
+  return true
 }
