@@ -1,8 +1,19 @@
 const ss = SpreadsheetApp.getActive()
 
 function test () {
-  const result = onDelete({ yearMonth: '2020-07', id: 'xxxxxxxx' })
-  console.log(result)
+  onPut({
+    beforeYM: '2020-07',
+    item: {
+      id: 'xxxxxxxx',
+      date: '2020-07-31',
+      title: '更新サンプル',
+      category: '食費',
+      tags: 'タグ1,タグ2',
+      income: null,
+      outgo: 5000,
+      memo: '更新したよ'  
+    }
+  })
 }
 
 /** --- API --- */
@@ -100,6 +111,54 @@ function onDelete ({ yearMonth, id }) {
   return {
     message: '削除完了しました'
   }
+}
+
+/**
+ * 指定データを更新します
+ * @param {Object} params
+ * @param {String} params.beforeYM 更新前の年月
+ * @param {Object} params.item 家計簿データ
+ * @returns {Object} 更新後の家計簿データ
+ */
+function onPut ({ beforeYM, item }) {
+  const ymReg = /^[0-9]{4}-(0[1-9]|1[0-2])$/
+  if (!ymReg.test(beforeYM) || !isValid(item)) {
+    return {
+      error: '正しい形式で入力してください'
+    }
+  }
+
+  // 更新前と後で年月が違う場合、データ削除と追加を実行
+  const yearMonth = item.date.slice(0, 7)
+  if (beforeYM !== yearMonth) {
+    onDelete({ yearMonth: beforeYM, id: item.id })
+    return onPost({ item })
+  }
+
+  const sheet = ss.getSheetByName(yearMonth)
+  if (sheet === null) {
+    return {
+      error: '指定のシートは存在しません'
+    }
+  }
+
+  const id = item.id
+  const lastRow = sheet.getLastRow()
+  const index = sheet.getRange('A7:A' + lastRow).getValues().flat().findIndex(v => v === id)
+
+  if (index === -1) {
+    return {
+      error: '指定のデータは存在しません'
+    }
+  }
+
+  const row = index + 7
+  const { date, title, category, tags, income, outgo, memo } = item
+
+  const values = [["'" + date, "'" + title, "'" + category, "'" + tags, income, outgo, "'" + memo]]
+  sheet.getRange(`B${row}:H${row}`).setValues(values)
+
+  return { id, date, title, category, tags, income, outgo, memo }
 }
 
 /** --- common --- */
