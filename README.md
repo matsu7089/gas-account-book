@@ -1,24 +1,39 @@
 # gas-account-book
 
-## Project setup
-```
+## ハンズオン
+https://qiita.com/matsu7089/items/6ea7931e97ae703f6607
+
+## 開発環境
+
+* Node.js v12.16.3
+* yarn v1.22.4
+
+## 使用した技術
+
+* バックエンド
+ * Google Apps Script
+* フロントエンド
+ * Vue.js / Vue Router / Vuex
+ * Vuetify
+ * axios
+
+## インストール
+
+```bash
+git clone https://github.com/matsu7089/gas-account-book.git
+cd gas-account-book
 yarn install
 ```
 
-### Compiles and hot-reloads for development
-```
+## 使い方
+
+```bash
+# 開発
 yarn serve
-```
 
-### Compiles and minifies for production
-```
+# ビルド
 yarn build
-```
 
-### Lints and fixes files
-```
+# lint
 yarn lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
