@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import gasApi from '../api/gasApi'
 
 Vue.use(Vuex)
 
@@ -10,6 +11,17 @@ Vue.use(Vuex)
 const state = {
   /** 家計簿データ */
   abData: {},
+
+  /** ローディング状態 */
+  loading: {
+    fetch: false,
+    add: false,
+    update: false,
+    delete: false
+  },
+
+  /** エラーメッセージ */
+  errorMessage: '',
 
   /** 設定 */
   settings: {
@@ -59,10 +71,24 @@ const mutations = {
     }
   },
 
+  /** ローディング状態をセットします */
+  setLoading (state, { type, v }) {
+    state.loading[type] = v
+  },
+
+  /** エラーメッセージをセットします */
+  setErrorMessage (state, { message }) {
+    state.errorMessage = message
+  },
+
   /** 設定を保存します */
   saveSettings (state, { settings }) {
     state.settings = { ...settings }
-    document.title = state.settings.appName
+    const { appName, apiUrl, authToken } = state.settings
+    document.title = appName
+    gasApi.setUrl(apiUrl)
+    gasApi.setAuthToken(authToken)
+    state.abData = {}
 
     localStorage.setItem('settings', JSON.stringify(settings))
   },
@@ -73,7 +99,10 @@ const mutations = {
     if (settings) {
       state.settings = Object.assign(state.settings, settings)
     }
-    document.title = state.settings.appName
+    const { appName, apiUrl, authToken } = state.settings
+    document.title = appName
+    gasApi.setUrl(apiUrl)
+    gasApi.setAuthToken(authToken)
   }
 }
 
@@ -83,37 +112,68 @@ const mutations = {
  */
 const actions = {
   /** 指定年月の家計簿データを取得します */
-  fetchAbData ({ commit }, { yearMonth }) {
-    // サンプルデータを初期値として入れる
-    const list = [
-      { id: 'a34109ed', date: `${yearMonth}-01`, title: '支出サンプル', category: '買い物', tags: 'タグ1', income: null, outgo: 2000, memo: 'メモ' },
-      { id: '7c8fa764', date: `${yearMonth}-02`, title: '収入サンプル', category: '給料', tags:'タグ1,タグ2', income: 2000, outgo: null, memo: 'メモ' }
-    ]
-    commit('setAbData', { yearMonth, list })
+  async fetchAbData ({ commit }, { yearMonth }) {
+    const type = 'fetch'
+    commit('setLoading', { type, v: true })
+    try {
+      const res = await gasApi.fetch(yearMonth)
+      commit('setAbData', { yearMonth, list: res.data })
+    } catch (e) {
+      commit('setErrorMessage', { message: e })
+      commit('setAbData', { yearMonth, list: [] })
+    } finally {
+      commit('setLoading', { type, v: false })
+    }
   },
 
   /** データを追加します */
-  addAbData ({ commit }, { item }) {
-    commit('addAbData', { item })
+  async addAbData ({ commit }, { item }) {
+    const type = 'add'
+    commit('setLoading', { type, v: true })
+    try {
+      const res = await gasApi.add(item)
+      commit('addAbData', { item: res.data })
+    } catch (e) {
+      commit('setErrorMessage', { message: e })
+    } finally {
+      commit('setLoading', { type, v: false })
+    }
   },
 
   /** データを更新します */
-  updateAbData ({ commit }, { beforeYM, item }) {
+  async updateAbData ({ commit }, { beforeYM, item }) {
+    const type = 'update'
     const yearMonth = item.date.slice(0, 7)
-    if (yearMonth === beforeYM) {
-      commit('updateAbData', { yearMonth, item })
-      return
+    commit('setLoading', { type, v: true })
+    try {
+      const res = await gasApi.update(beforeYM, item)
+      if (yearMonth === beforeYM) {
+        commit('updateAbData', { yearMonth, item })
+        return
+      }
+      const id = item.id
+      commit('deleteAbData', { yearMonth: beforeYM, id })
+      commit('addAbData', { item: res.data })
+    } catch (e) {
+      commit('setErrorMessage', { message: e })
+    } finally {
+      commit('setLoading', { type, v: false })
     }
-    const id = item.id
-    commit('deleteAbData', { yearMonth: beforeYM, id })
-    commit('addAbData', { item })
   },
 
   /** データを削除します */
-  deleteAbData ({ commit }, { item }) {
+  async deleteAbData ({ commit }, { item }) {
+    const type = 'delete'
     const yearMonth = item.date.slice(0, 7)
     const id = item.id
-    commit('deleteAbData', { yearMonth, id })
+    try {
+      await gasApi.delete(yearMonth, id)
+      commit('deleteAbData', { yearMonth, id })
+    } catch (e) {
+      commit('setErrorMessage', { message: e })
+    } finally {
+      commit('setLoading', { type, v: false })
+    }
   },
 
   /** 設定を保存します */
