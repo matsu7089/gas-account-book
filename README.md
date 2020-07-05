@@ -11,11 +11,11 @@ https://qiita.com/matsu7089/items/6ea7931e97ae703f6607
 ## 使用した技術
 
 * バックエンド
- * Google Apps Script
+  * Google Apps Script
 * フロントエンド
- * Vue.js / Vue Router / Vuex
- * Vuetify
- * axios
+  * Vue.js / Vue Router / Vuex
+  * Vuetify
+  * axios
 
 ## インストール
 
