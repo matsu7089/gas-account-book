@@ -166,6 +166,7 @@ const actions = {
     const type = 'delete'
     const yearMonth = item.date.slice(0, 7)
     const id = item.id
+    commit('setLoading', { type, v: true })
     try {
       await gasApi.delete(yearMonth, id)
       commit('deleteAbData', { yearMonth, id })
