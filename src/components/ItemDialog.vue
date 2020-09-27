@@ -167,7 +167,7 @@ export default {
       tagRule: v => v.length <= 5 || 'タグは5種類以内で選択してください',
       amountRules: [
         v => v >= 0 || '金額は0以上で入力してください',
-        v => Number.isInteger(v) || '整数で入力してください'
+        v => Number.isInteger(parseInt(v)) || '整数で入力してください'
       ],
       memoRule: v => v.length <= 50 || 'メモは50文字以内で入力してください'
     }
