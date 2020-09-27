@@ -74,6 +74,7 @@
               >
                 {{ category[0] }}
               </v-progress-circular>
+              <div class="text-center mr-2">{{ separate(category[2]) }}</div>
             </div>
           </div>
         </v-col>
@@ -222,7 +223,7 @@ export default {
       const sorted = Object.entries(categoryOutgo).sort((a, b) => b[1] - a[1])
       for (const [category, value] of sorted) {
         const percent = parseInt((value / outgo) * 100)
-        categories.push([category, percent])
+        categories.push([category, percent, value])
       }
 
       return {
